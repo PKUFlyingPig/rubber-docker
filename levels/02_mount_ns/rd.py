@@ -15,6 +15,7 @@ from __future__ import print_function
 import linux
 import tarfile
 import uuid
+import stat
 
 import click
 import os
@@ -63,10 +64,11 @@ def contain(command, image_name, image_dir, container_id, container_dir):
     #           just for you!
     #   HINT 2: the linux module includes both functions and constants!
     #           e.g. linux.CLONE_NEWNS
-
+    linux.unshare(linux.CLONE_NEWNS)
     # TODO: remember shared subtrees?
     # (https://www.kernel.org/doc/Documentation/filesystems/sharedsubtree.txt)
     # Make / a private mount to avoid littering our host mount table.
+    linux.mount(None, '/', None, linux.MS_PRIVATE | linux.MS_REC, None)
 
     # Create mounts (/proc, /sys, /dev) under new_root
     linux.mount('proc', os.path.join(new_root, 'proc'), 'proc', 0, '')
@@ -82,6 +84,8 @@ def contain(command, image_name, image_dir, container_id, container_dir):
         os.symlink('/proc/self/fd/%d' % i, os.path.join(new_root, 'dev', dev))
 
     # TODO: add more devices (e.g. null, zero, random, urandom) using os.mknod.
+    dev_path = os.path.join(new_root, 'dev')
+    os.mknod(os.path.join(dev_path, 'null'), 0666 | stat.S_IFCHR, os.makedev(1, 3))
 
     os.chroot(new_root)
 
