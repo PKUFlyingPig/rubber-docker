@@ -16,6 +16,7 @@ from __future__ import print_function
 import linux
 import tarfile
 import uuid
+from shutil import copyfile
 
 import click
 import os
@@ -41,7 +42,7 @@ def create_container_root(image_name, image_dir, container_id, container_dir):
         os.makedirs(container_root)
 
     # TODO: uncomment (why?)
-    # linux.mount('tmpfs', container_root, 'tmpfs', 0, None)
+    linux.mount('tmpfs', container_root, 'tmpfs', 0, None)
 
     with tarfile.open(image_path) as t:
         # Fun fact: tar files may contain *nix devices! *facepalm*
@@ -102,11 +103,21 @@ def contain(command, image_name, image_dir, container_id, container_dir):
 
     makedev(os.path.join(new_root, 'dev'))
 
-    os.chroot(new_root)  # TODO: replace with pivot_root
+    # copy breakout.py file
+    copyfile('breakout.py', os.path.join(new_root, 'breakout.py'))
 
+    ## can breakout it
+    # os.chroot(new_root)
+    # os.chdir('/')
+
+    put_old = os.path.join(new_root, "old")
+    os.makedirs(put_old)
+    linux.pivot_root(new_root, put_old)
     os.chdir('/')
 
     # TODO: umount2 old root (HINT: see MNT_DETACH in man 2 umount)
+    linux.umount2("/old", linux.MNT_DETACH)
+    os.rmdir("/old")
 
     os.execvp(command[0], command)
 
