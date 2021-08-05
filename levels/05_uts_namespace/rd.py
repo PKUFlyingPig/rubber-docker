@@ -100,7 +100,9 @@ def contain(command, image_name, image_dir, container_id, container_dir):
     linux.unshare(linux.CLONE_NEWNS)  # create a new mount namespace
     # TODO: switch to a new UTS namespace, change hostname to container_id
     # HINT: use linux.sethostname()
-
+    linux.unshare(linux.CLONE_NEWUTS)
+    linux.sethostname(container_id)
+    
     linux.mount(None, '/', None, linux.MS_PRIVATE | linux.MS_REC, None)
 
     new_root = create_container_root(
