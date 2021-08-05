@@ -73,10 +73,15 @@ def cli():
 
 def contain(command, image_name, image_dir, container_id, container_dir):
     # TODO: would you like to do something before chrooting?
-    # print('Created a new root fs for our container: {}'.format(new_root))
+    new_root = create_container_root(image_name, image_dir, container_id, container_dir)
+    print('Created a new root fs for our container: {}'.format(new_root))
+
+    # TODO: something after chrooting? (HINT: try running: sudo python rd.py run -i ubuntu -- /bin/sh)
+    linux.mount('proc', os.path.join(new_root, 'proc'), 'proc', 0, '')
 
     # TODO: chroot into new_root
-    # TODO: something after chrooting? (HINT: try running: sudo python rd.py run -i ubuntu -- /bin/sh)
+    os.chroot(new_root)
+    os.chdir('/')
 
     os.execvp(command[0], command)
 
