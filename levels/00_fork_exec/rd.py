@@ -31,7 +31,7 @@ def contain(command):
     # NOTE: command is an array (the first element is path/file, and the entire
     #       array is exec's args)
 
-    os._exit(0)  # TODO: remove this after adding exec
+    os.execv(command[0], command)
 
 
 @cli.command(context_settings=dict(ignore_unknown_options=True,))
@@ -39,7 +39,7 @@ def contain(command):
 def run(command):
     # TODO: replace this with fork()
     #       (https://docs.python.org/2/library/os.html#os.fork)
-    pid = 0
+    pid = os.fork()
     if pid == 0:
         # This is the child, we'll try to do some containment here
         try:
