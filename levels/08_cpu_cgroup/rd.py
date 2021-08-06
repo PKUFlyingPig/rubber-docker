@@ -99,8 +99,18 @@ def contain(command, image_name, image_dir, container_id, container_dir,
             cpu_shares):
     # TODO: insert the container to a new cpu cgroup named:
     #       'rubber_docker/container_id'
-
+    cgroup_dir = os.path.join("/sys/fs/cgroup/cpu/rubber_docker", container_id)
+    if not os.path.exists(cgroup_dir):
+        os.makedirs(cgroup_dir)
+    task_file = os.path.join(cgroup_dir, "tasks")
+    with open(task_file, 'w') as f:
+        f.write(str(os.getpid()))
     # TODO: if (cpu_shares != 0)  => set the 'cpu.shares' in our cpu cgroup
+    shares_file = os.path.join(cgroup_dir, "cpu.shares")
+    if cpu_shares:
+        with open(shares_file, 'w') as f:
+            f.write(str(cpu_shares))
+
 
     linux.sethostname(container_id)  # change hostname to container_id
 
